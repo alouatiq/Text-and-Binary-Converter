@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text and Binary Converter</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        #output, #error, #explanation {
+            white-space: pre-wrap;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+        #error {
+            color: red;
+        }
+        .switch {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+        .switch button {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .switch button.active {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Text and Binary Converter</h1>
+        <div class="switch">
+            <button id="textToBinaryBtn" class="active" onclick="setMode('textToBinary')">Text to Binary</button>
+            <button id="binaryToTextBtn" onclick="setMode('binaryToText')">Binary to Text</button>
+        </div>
+        <textarea id="input" placeholder="Enter your text here"></textarea>
+        <button onclick="convert()">Convert</button>
+        <div id="error"></div>
+        <h2>Output:</h2>
+        <div id="output"></div>
+        <h2>Explanation:</h2>
+        <div id="explanation"></div>
+    </div>
+
+    <script>
+        let mode = 'textToBinary';
+
+        function setMode(newMode) {
+            mode = newMode;
+            document.getElementById('textToBinaryBtn').classList.toggle('active', mode === 'textToBinary');
+            document.getElementById('binaryToTextBtn').classList.toggle('active', mode === 'binaryToText');
+            updatePlaceholder();
+            clearError();
+            clearOutput();
+            clearExplanation();
+        }
+
+        function updatePlaceholder() {
+            const input = document.getElementById('input');
+            input.placeholder = mode === 'textToBinary' ? "Enter your text here" : "Enter your binary here (space-separated 8-bit groups)";
+        }
+
+        function clearError() {
+            document.getElementById('error').textContent = '';
+        }
+
+        function clearOutput() {
+            document.getElementById('output').textContent = '';
+        }
+
+        function clearExplanation() {
+            document.getElementById('explanation').textContent = '';
+        }
+
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+        }
+
+        function convert() {
+            const input = document.getElementById('input').value.trim();
+            const output = document.getElementById('output');
+            const explanation = document.getElementById('explanation');
+            
+            clearError();
+            clearOutput();
+            clearExplanation();
+
+            if (input === '') {
+                showError('Please enter some input.');
+                return;
+            }
+
+            if (mode === 'textToBinary') {
+                const result = textToBinary(input);
+                output.textContent = result.binary;
+                explanation.innerHTML = result.explanation;
+            } else {
+                if (!isValidBinary(input)) {
+                    showError('Invalid binary input. Please enter space-separated 8-bit binary numbers (e.g., "01101000 01101001").');
+                    return;
+                }
+                const result = binaryToText(input);
+                output.textContent = result.text;
+                explanation.innerHTML = result.explanation;
+            }
+        }
+
+        function isValidBinary(input) {
+            const binaryPattern = /^([01]{8}\s)*[01]{8}$/;
+            return binaryPattern.test(input);
+        }
+
+        function textToBinary(text) {
+            let binary = '';
+            let explanation = '';
+
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const charCode = char.charCodeAt(0);
+                const binaryChar = charCode.toString(2).padStart(8, '0');
+                binary += binaryChar + ' ';
+                explanation += `"${char}" (ASCII: ${charCode}) → ${binaryChar}<br>`;
+            }
+
+            return {
+                binary: binary.trim(),
+                explanation: `Each character is converted to its ASCII code, then to 8-bit binary:<br>${explanation}`
+            };
+        }
+
+        function binaryToText(binary) {
+            const binaryGroups = binary.split(' ');
+            let text = '';
+            let explanation = '';
+
+            for (let i = 0; i < binaryGroups.length; i++) {
+                const binaryGroup = binaryGroups[i];
+                const charCode = parseInt(binaryGroup, 2);
+                const char = String.fromCharCode(charCode);
+                text += char;
+                explanation += `${binaryGroup} → ASCII ${charCode} → "${char}"<br>`;
+            }
+
+            return {
+                text: text,
+                explanation: `Each 8-bit binary group is converted to its ASCII code, then to a character:<br>${explanation}`
+            };
+        }
+
+        updatePlaceholder();
+    </script>
+</body>
+</html>
